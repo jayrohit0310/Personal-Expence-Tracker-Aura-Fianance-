@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aura Finance | Personal Expense Tracker</title>
+  
+  <!-- Modern Premium Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom Styling System -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- SweetAlert2 for Dialogs -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <!-- Chart.js for Visual Data Graphics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- jsPDF & AutoTable CDNs for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  
+  <!-- SheetJS CDN for Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="light-theme">
+
+  <!-- ==========================================
+       TOP MOBILE HEADER BAR
+       ========================================== -->
+  <header id="mobile-header" class="mobile-header">
+    <div class="mobile-header-brand">
+      <i data-lucide="wallet" class="logo-icon-small"></i>
+      <span class="logo-text">Aura Finance</span>
+    </div>
+    <div class="mobile-header-actions">
+      <!-- Theme Switcher -->
+      <button onclick="toggleTheme()" class="btn-theme-toggle-icon" title="Toggle theme">
+        <i data-lucide="sun" id="theme-icon-mobile"></i>
+      </button>
+      
+      <!-- User profile initials dropdown -->
+      <div class="mobile-user-avatar" onclick="toggleMobileMenu()">
+        <span id="mobile-user-initials">D</span>
+        <div id="mobile-dropdown-menu" class="mobile-dropdown hidden">
+          <div class="dropdown-user-info">
+            <strong id="mobile-dropdown-name">Demo User</strong>
+            <span>Active</span>
+          </div>
+          <button onclick="handleLogout()" class="dropdown-logout-btn">
+            <i data-lucide="log-out"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================
+       AUTHENTICATION STATE
+       ========================================== -->
+  <div id="auth-container" class="auth-wrapper">
+    <div class="auth-bg-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+    
+    <div class="auth-card-wrapper">
+      <div class="auth-brand">
+        <div class="brand-logo">
+          <i data-lucide="wallet" class="logo-icon"></i>
+        </div>
+        <h1>Aura Finance</h1>
+        <p>Smart, elegant wealth & expense intelligence.</p>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+          <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+          <div class="input-group">
+            <label for="login-credential">Username or Email</label>
+            <div class="input-wrapper">
+              <i data-lucide="user" class="input-icon"></i>
+              <input type="text" id="login-credential" placeholder="Enter username or email" required>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label for="login-password">Password</label>
+            <div class="input-wrapper">
+              <i data-lucide="lock" class="input-icon"></i>
+              <input type="password" id="login-password" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span>Sign In</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+          <div class="input-group">
+            <label for="register-username">Username</label>
+            <div class="input-wrapper">
+              <i data-lucide="user" class="input-icon"></i>
+              <input type="text" id="register-username" placeholder="e.g. johndoe" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="register-email">Email Address</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="input-icon"></i>
+              <input type="email" id="register-email" placeholder="e.g. john@example.com" required>
+            </div>
+          </div>
+          
+          <div class="input-group">
+            <label for="register-password">Password</label>
+            <div class="input-wrapper">
+              <i data-lucide="lock" class="input-icon"></i>
+              <input type="password" id="register-password" placeholder="At least 6 characters" required minlength="6">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span>Create Account</span>
+            <i data-lucide="user-plus"></i>
+          </button>
+        </form>
+        
+        <div class="demo-login-tip">
+          <p><i data-lucide="sparkles"></i> Quick Demo Access: Username <strong>demo</strong> / Password <strong>password123</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MAIN APP SHELL
+       ========================================== -->
+  <div id="app-container" class="app-layout hidden">
+    
+    <!-- Desktop Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <i data-lucide="wallet" class="logo-icon-small"></i>
+          <span class="logo-text">Aura Finance</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" id="nav-dashboard" class="nav-item active" onclick="switchView('dashboard')">
+              <i data-lucide="layout-dashboard"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="nav-transactions" class="nav-item" onclick="switchView('transactions')">
+              <i data-lucide="arrow-left-right"></i>
+              <span>Transactions</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="nav-budgets" class="nav-item" onclick="switchView('budgets')">
+              <i data-lucide="pie-chart"></i>
+              <span>Budgets</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="nav-reports" class="nav-item" onclick="switchView('reports')">
+              <i data-lucide="file-text"></i>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="nav-analytics" class="nav-item" onclick="switchView('analytics')">
+              <i data-lucide="trending-up"></i>
+              <span>Analytics</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button onclick="toggleTheme()" class="btn-theme-toggle" id="theme-toggle-desktop">
+          <i data-lucide="sun" id="theme-icon-desktop"></i>
+          <span>Theme Toggle</span>
+        </button>
+        <div class="user-profile-summary">
+          <div class="user-avatar">
+            <span id="user-initials">D</span>
+          </div>
+          <div class="user-info">
+            <span id="username-display" class="user-name">Demo User</span>
+            <span class="user-status">Active</span>
+          </div>
+        </div>
+        <button onclick="handleLogout()" class="btn-logout" title="Sign Out">
+          <i data-lucide="log-out"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- Top header bar -->
+      <header class="app-header">
+        <div class="header-welcome">
+          <h2 id="header-greeting">Welcome back, Demo</h2>
+          <p id="header-date">Wednesday, May 20, 2026</p>
+        </div>
+        
+        <div class="header-right-controls">
+          <!-- Month Selector Dropdown -->
+          <div class="month-selector-wrapper" id="month-filter-container">
+            <label for="dashboard-month-select">View Month:</label>
+            <select id="dashboard-month-select" class="header-select" onchange="handleMonthChange()">
+              <!-- Filled Dynamically -->
+            </select>
+          </div>
+          
+          <div class="header-actions">
+            <button class="btn btn-success" onclick="openTransactionModal('expense')">
+              <i data-lucide="plus-circle"></i>
+              <span>Add Expense</span>
+            </button>
+            <button class="btn btn-primary" onclick="openTransactionModal('income')">
+              <i data-lucide="arrow-up-circle"></i>
+              <span>Add Income</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Skeleton Loader View -->
+      <div id="skeleton-loader" class="skeleton-loader hidden">
+        <div class="skeleton-metrics">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div class="skeleton-grid">
+          <div class="skeleton-card large"></div>
+          <div class="skeleton-card small"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 1: DASHBOARD -->
+      <section id="view-dashboard" class="content-view">
+        <!-- Metric Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card balance-card">
+            <div class="metric-header">
+              <span>NET BALANCE</span>
+              <div class="metric-icon balance-icon-bg">
+                <i data-lucide="coins"></i>
+              </div>
+            </div>
+            <h2 id="metric-balance" class="amount">$0.00</h2>
+            <p class="metric-desc">Available net savings pool</p>
+          </div>
+
+          <div class="metric-card income-card">
+            <div class="metric-header">
+              <span>TOTAL INCOME</span>
+              <div class="metric-icon income-icon-bg">
+                <i data-lucide="trending-up"></i>
+              </div>
+            </div>
+            <h2 id="metric-income" class="amount text-success">$0.00</h2>
+            <p class="metric-desc">Earnings in selected month</p>
+          </div>
+
+          <div class="metric-card expense-card">
+            <div class="metric-header">
+              <span>TOTAL EXPENSES</span>
+              <div class="metric-icon expense-icon-bg">
+                <i data-lucide="trending-down"></i>
+              </div>
+            </div>
+            <h2 id="metric-expense" class="amount text-danger">$0.00</h2>
+            <p class="metric-desc">Outflows in selected month</p>
+          </div>
+
+          <div class="metric-card savings-card">
+            <div class="metric-header">
+              <span>TOTAL SAVINGS</span>
+              <div class="metric-icon savings-icon-bg">
+                <i data-lucide="piggy-bank"></i>
+              </div>
+            </div>
+            <h2 id="metric-savings" class="amount text-primary">$0.00</h2>
+            <p class="metric-desc">Savings rate: <strong id="metric-savings-rate" class="text-primary">0%</strong></p>
+          </div>
+        </div>
+
+        <!-- Dashboard Layout Grid -->
+        <div class="dashboard-grid">
+          <!-- Left Column: Budgets & Warnings -->
+          <div class="dash-column">
+            <div class="content-card">
+              <div class="card-header">
+                <h3>Active Budget Statuses</h3>
+                <button class="btn-text" onclick="switchView('budgets')">Configure Budgets</button>
+              </div>
+              <div id="dashboard-budgets" class="dash-budget-list">
+                <!-- Budgets inserted by JS -->
+                <div class="no-data-msg">
+                  <i data-lucide="pie-chart"></i>
+                  <p>No active category budget limits set.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Recent Transactions -->
+          <div class="dash-column">
+            <div class="content-card">
+              <div class="card-header">
+                <h3>Recent Transactions</h3>
+                <button class="btn-text" onclick="switchView('transactions')">View All</button>
+              </div>
+              <div class="table-container">
+                <table class="recent-transactions-table">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Date</th>
+                      <th class="text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-transactions">
+                    <!-- Transactions inserted by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: TRANSACTIONS (CRUD MANAGEMENT) -->
+      <section id="view-transactions" class="content-view hidden">
+        <div class="content-card">
+          <div class="card-header flex-column-mobile">
+            <h3>Transaction Vault</h3>
+            
+            <div class="filter-controls">
+              <!-- Text Search -->
+              <div class="search-input">
+                <i data-lucide="search"></i>
+                <input type="text" id="tx-search" placeholder="Search logs..." oninput="applyFilters()">
+              </div>
+              
+              <!-- Flow Type Filter -->
+              <select id="tx-type-filter" onchange="applyFilters()">
+                <option value="all">All Types</option>
+                <option value="income">Incomes Only</option>
+                <option value="expense">Expenses Only</option>
+              </select>
+
+              <!-- Category Filter -->
+              <select id="tx-category-filter" onchange="applyFilters()">
+                <option value="all">All Categories</option>
+                <!-- Filled dynamically -->
+              </select>
+
+              <!-- Date Preset Filter -->
+              <select id="tx-date-filter" onchange="applyFilters()">
+                <option value="all">All Dates</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+                <option value="thismonth">This Month</option>
+                <option value="lastmonth">Last Month</option>
+              </select>
+
+              <!-- Amount Threshold Filter -->
+              <select id="tx-amount-filter" onchange="applyFilters()">
+                <option value="all">All Amounts</option>
+                <option value="under100">Under $100</option>
+                <option value="100to500">$100 - $500</option>
+                <option value="over500">Over $500</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Transaction List Table with Headers Sortable -->
+          <div class="table-container large-table-container">
+            <table class="main-table">
+              <thead>
+                <tr>
+                  <th onclick="toggleSort('type')" class="sortable-header">Type <i data-lucide="arrow-up-down" class="sort-icon-mini"></i></th>
+                  <th onclick="toggleSort('category')" class="sortable-header">Category <i data-lucide="arrow-up-down" class="sort-icon-mini"></i></th>
+                  <th onclick="toggleSort('description')" class="sortable-header">Description <i data-lucide="arrow-up-down" class="sort-icon-mini"></i></th>
+                  <th onclick="toggleSort('date')" class="sortable-header">Date <i data-lucide="arrow-up-down" class="sort-icon-mini"></i></th>
+                  <th onclick="toggleSort('amount')" class="sortable-header text-right">Amount <i data-lucide="arrow-up-down" class="sort-icon-mini"></i></th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-list">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div class="pagination-bar">
+            <div class="pagination-info">
+              Showing <span id="pg-start-idx">0</span> to <span id="pg-end-idx">0</span> of <span id="pg-total-count">0</span> records
+            </div>
+            <div class="pagination-controls">
+              <button class="btn btn-secondary btn-pagination" id="btn-pg-prev" onclick="changePage(-1)">
+                <i data-lucide="chevron-left"></i> Prev
+              </button>
+              <div class="pagination-pages" id="pagination-pages-list"></div>
+              <button class="btn btn-secondary btn-pagination" id="btn-pg-next" onclick="changePage(1)">
+                Next <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: BUDGETS (LIMIT CONFIGURATION) -->
+      <section id="view-budgets" class="content-view hidden">
+        <div class="budgets-layout">
+          <!-- Left side: Set Budget Form -->
+          <div class="budget-form-card content-card">
+            <h3>Set Category Budget</h3>
+            <p class="subtitle">Enforce limits to keep control of category-specific expenses.</p>
+            
+            <form id="budget-form" onsubmit="handleSetBudget(event)">
+              <div class="input-group">
+                <label for="budget-category">Expense Category</label>
+                <select id="budget-category" required>
+                  <option value="" disabled selected>Select a category</option>
+                  <option value="Food & Dining">Food & Dining</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Rent & Housing">Rent & Housing</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Miscellaneous">Miscellaneous</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label for="budget-limit">Monthly Limit Amount ($)</label>
+                <div class="input-wrapper">
+                  <span class="currency-prefix">$</span>
+                  <input type="number" id="budget-limit" placeholder="e.g. 500" min="1" step="any" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">
+                <i data-lucide="check-circle"></i>
+                <span>Enforce Budget Limit</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Right side: Budget tracking grid -->
+          <div class="budget-display-card content-card">
+            <h3>Budget Overview</h3>
+            <p class="subtitle">Current dynamic allocations and actual spent proportions.</p>
+            
+            <div id="budgets-display-list" class="budgets-card-grid">
+              <!-- Filled Dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: REPORTS VIEW (NEW) -->
+      <section id="view-reports" class="content-view hidden">
+        <div class="reports-layout">
+          <!-- Left side: Export control parameters -->
+          <div class="report-form-card content-card">
+            <h3>Generate Financial Report</h3>
+            <p class="subtitle">Compile summary parameters and export formats.</p>
+            
+            <div class="input-group">
+              <label for="report-range">Select Range</label>
+              <select id="report-range" onchange="toggleCustomReportDates()">
+                <option value="thismonth" selected>Current Month</option>
+                <option value="lastmonth">Previous Month</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+                <option value="3months">Last 3 Months</option>
+                <option value="6months">Last 6 Months</option>
+                <option value="year">Last Year</option>
+                <option value="custom">Custom Date Range</option>
+              </select>
+            </div>
+
+            <!-- Custom date parameters inputs hidden by default -->
+            <div id="custom-report-dates" class="input-group hidden">
+              <div class="modal-form-row">
+                <div class="input-group">
+                  <label for="report-start-date">Start Date</label>
+                  <input type="date" id="report-start-date">
+                </div>
+                <div class="input-group">
+                  <label for="report-end-date">End Date</label>
+                  <input type="date" id="report-end-date">
+                </div>
+              </div>
+            </div>
+
+            <button onclick="handleGenerateReport()" class="btn btn-primary btn-block">
+              <i data-lucide="refresh-cw"></i>
+              <span>Compile Report Data</span>
+            </button>
+          </div>
+
+          <!-- Right side: Report preview details and export items -->
+          <div class="report-display-card content-card">
+            <div class="report-header-preview">
+              <div>
+                <h3>Report Preview Summary</h3>
+                <p id="report-preview-range" class="subtitle">Compilation Range: Current Month</p>
+              </div>
+              
+              <!-- Download buttons -->
+              <div class="export-actions hidden" id="report-export-actions">
+                <button onclick="exportReport('pdf')" class="btn btn-danger btn-sm">
+                  <i data-lucide="file-text"></i> PDF
+                </button>
+                <button onclick="exportReport('excel')" class="btn btn-success btn-sm">
+                  <i data-lucide="file-spreadsheet"></i> Excel
+                </button>
+                <button onclick="exportReport('csv')" class="btn btn-secondary btn-sm">
+                  <i data-lucide="download"></i> CSV
+                </button>
+              </div>
+            </div>
+            
+            <div id="report-preview-empty" class="no-data-msg">
+              <i data-lucide="file-text"></i>
+              <p>Select report parameters and compile data to preview details.</p>
+            </div>
+            
+            <div id="report-preview-content" class="hidden">
+              <div class="report-metrics-grid">
+                <div class="report-metric">
+                  <span class="report-metric-lbl">Total Income</span>
+                  <span id="report-metric-income" class="report-metric-val text-success">$0.00</span>
+                </div>
+                <div class="report-metric">
+                  <span class="report-metric-lbl">Total Expenses</span>
+                  <span id="report-metric-expense" class="report-metric-val text-danger">$0.00</span>
+                </div>
+                <div class="report-metric">
+                  <span class="report-metric-lbl">Net Savings</span>
+                  <span id="report-metric-savings" class="report-metric-val">$0.00</span>
+                </div>
+                <div class="report-metric">
+                  <span class="report-metric-lbl">Highest Category</span>
+                  <span id="report-metric-highest" class="report-metric-val font-semibold">-</span>
+                </div>
+              </div>
+              
+              <div class="report-meta-details">
+                <p>Transactions in range: <strong id="report-meta-count">0</strong></p>
+                <p>Account Holder: <strong id="report-meta-user">demo</strong></p>
+              </div>
+
+              <div class="table-container large-table-container">
+                <table class="main-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Date</th>
+                      <th class="text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="report-transactions-list">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: ANALYTICS -->
+      <section id="view-analytics" class="content-view hidden">
+        <!-- Analytics Top Metrics -->
+        <div class="analytics-metrics-grid">
+          <div class="metric-card">
+            <span class="analytics-metric-label">Daily Avg Spending</span>
+            <h3 id="analytics-daily-avg" class="amount">$0.00</h3>
+            <p class="metric-desc">Average outflow logged per day</p>
+          </div>
+          <div class="metric-card">
+            <span class="analytics-metric-label">Weekly Avg Spending</span>
+            <h3 id="analytics-weekly-avg" class="amount">$0.00</h3>
+            <p class="metric-desc">Aggregated average spending rate</p>
+          </div>
+          <div class="metric-card">
+            <span class="analytics-metric-label">Savings Rate</span>
+            <h3 id="analytics-savings-rate" class="amount text-success">0%</h3>
+            <p class="metric-desc">Proportion of earnings saved</p>
+          </div>
+        </div>
+
+        <!-- Financial Insights Block -->
+        <div class="content-card insights-card">
+          <div class="card-header">
+            <h3>
+              <i data-lucide="sparkles" class="text-primary" style="display:inline-block; vertical-align:middle; margin-right:6px;"></i> 
+              Aura Financial Intelligence & Insights
+            </h3>
+          </div>
+          <div id="analytics-insights-list" class="insights-list">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="analytics-layout-grid">
+          <!-- Monthly Spending Cash Flow Trends -->
+          <div class="content-card full-width-card">
+            <div class="card-header">
+              <h3>Monthly Cashflow Trends</h3>
+              <p class="subtitle">Income vs Expenses over time</p>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chart-trends"></canvas>
+            </div>
+          </div>
+
+          <!-- Expense Composition (Pie/Doughnut) -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Expense Composition</h3>
+              <p class="subtitle">Shares of category outflows</p>
+            </div>
+            <div class="chart-wrapper flex-center">
+              <canvas id="chart-categories" class="doughnut-chart-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Budget Utilization Comparison (Bar) -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Budget Utilization</h3>
+              <p class="subtitle">Limits vs Actual Outflows</p>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chart-budget-utilization"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODALS
+       ========================================== -->
+  <!-- Transaction Add/Edit Modal -->
+  <div id="transaction-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-tx-title">Add New Transaction</h3>
+        <button class="btn-close" onclick="closeTransactionModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <form id="transaction-form" onsubmit="handleSaveTransaction(event)">
+        <!-- Hidden input for ID when editing -->
+        <input type="hidden" id="modal-tx-id">
+
+        <div class="input-group">
+          <label>Flow Type</label>
+          <div class="toggle-switch-container">
+            <input type="radio" name="tx-type" id="type-expense" value="expense" checked>
+            <label for="type-expense" class="toggle-label toggle-left">Expense</label>
+
+            <input type="radio" name="tx-type" id="type-income" value="income">
+            <label for="type-income" class="toggle-label toggle-right">Income</label>
+          </div>
+        </div>
+
+        <div class="modal-form-row">
+          <div class="input-group">
+            <label for="modal-tx-amount">Amount ($)</label>
+            <div class="input-wrapper">
+              <span class="currency-prefix">$</span>
+              <input type="number" id="modal-tx-amount" placeholder="0.00" min="0.01" step="any" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="modal-tx-date">Date</label>
+            <div class="input-wrapper">
+              <i data-lucide="calendar" class="input-icon"></i>
+              <input type="date" id="modal-tx-date" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="modal-tx-category">Category</label>
+          <select id="modal-tx-category" required>
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="modal-tx-desc">Description</label>
+          <div class="input-wrapper">
+            <i data-lucide="file-text" class="input-icon"></i>
+            <input type="text" id="modal-tx-desc" placeholder="e.g. Weekly grocery bills">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeTransactionModal()">Cancel</button>
+          <button type="submit" class="btn btn-success" id="modal-tx-submit-btn">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       BOTTOM MOBILE NAVIGATION BAR
+       ========================================== -->
+  <nav id="mobile-nav" class="mobile-nav">
+    <a href="#" id="mobile-nav-dashboard" class="mobile-nav-item active" onclick="switchView('dashboard')">
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="#" id="mobile-nav-transactions" class="mobile-nav-item" onclick="switchView('transactions')">
+      <i data-lucide="arrow-left-right"></i>
+      <span>Transact</span>
+    </a>
+    <a href="#" id="mobile-nav-budgets" class="mobile-nav-item" onclick="switchView('budgets')">
+      <i data-lucide="pie-chart"></i>
+      <span>Budgets</span>
+    </a>
+    <a href="#" id="mobile-nav-reports" class="mobile-nav-item" onclick="switchView('reports')">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <a href="#" id="mobile-nav-analytics" class="mobile-nav-item" onclick="switchView('analytics')">
+      <i data-lucide="trending-up"></i>
+      <span>Trends</span>
+    </a>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
