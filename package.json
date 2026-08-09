@@ -10,7 +10,7 @@
   "keywords": [
     "expense-tracker",
     "budget",
-    "sqlite",
+    "mongodb",
     "express",
     "finance"
   ],
@@ -21,6 +21,6 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
-    "sqlite3": "^5.1.7"
+    "mongoose": "^8.24.2"
   }
 }
