@@ -144,6 +144,11 @@ button, input, select, textarea {
   color: inherit;
 }
 
+option {
+  background-color: var(--bg-secondary);
+  color: var(--text-main);
+}
+
 .text-success { color: var(--success) !important; }
 .text-danger { color: var(--danger) !important; }
 .text-warning { color: var(--warning) !important; }
@@ -887,9 +892,10 @@ body.dark-theme .blob {
 .subtitle {
   color: var(--text-muted);
   font-size: 12px;
-  margin-top: -12px;
+  margin-top: 4px;
   margin-bottom: 16px;
 }
+
 
 /* ==========================================
    Budget Statuses
