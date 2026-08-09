@@ -406,6 +406,8 @@ function switchView(viewName) {
     renderInsights();
   } else if (viewName === 'reports') {
     resetReportView();
+  } else if (viewName === 'profile') {
+    populateProfileForm();
   }
   
   lucide.createIcons();
@@ -433,7 +435,7 @@ function updateUI() {
 // Dashboard Metric & Data Renderers
 // ==========================================
 function renderMetrics() {
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
   
   // Compute savings rate
   const income = state.summary.totalIncome;
@@ -480,7 +482,7 @@ function renderDashboardBudgets() {
   budgets.forEach(b => {
     const percentage = b.limit_amount > 0 ? (b.spent / b.limit_amount) * 100 : 0;
     const formattedPercent = percentage.toFixed(0);
-    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
 
     let fillClass = '';
     let warningHTML = '';
@@ -537,7 +539,7 @@ function renderDashboardTransactions() {
   }
 
   recent.forEach(tx => {
-    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
     const amountClass = tx.type === 'income' ? 'text-success font-semibold' : 'text-danger';
     const amountPrefix = tx.type === 'income' ? '+' : '-';
     
@@ -701,7 +703,7 @@ function renderTransactionsList() {
   }
 
   pageItems.forEach(tx => {
-    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
     const typeBadge = tx.type === 'income' 
       ? '<span class="badge badge-income"><i data-lucide="arrow-up-right"></i>Income</span>'
       : '<span class="badge badge-expense"><i data-lucide="arrow-down-left"></i>Expense</span>';
@@ -720,10 +722,10 @@ function renderTransactionsList() {
         <td class="text-right ${amountClass}" style="font-weight: 600;">${amountPrefix}${formatter.format(tx.amount)}</td>
         <td class="text-center">
           <div style="display: flex; gap: 8px; justify-content: center;">
-            <button class="btn-icon edit-btn" onclick="openTransactionModal('${tx.type}', ${tx.id})" title="Edit record">
+            <button class="btn-icon edit-btn" onclick="openTransactionModal('${tx.type}', '${tx.id}')" title="Edit record">
               <i data-lucide="edit-3"></i>
             </button>
-            <button class="btn-icon delete-btn" onclick="deleteTransaction(${tx.id})" title="Delete record">
+            <button class="btn-icon delete-btn" onclick="deleteTransaction('${tx.id}')" title="Delete record">
               <i data-lucide="trash-2"></i>
             </button>
           </div>
@@ -830,7 +832,7 @@ function openTransactionModal(type, editId = null) {
   document.getElementById('modal-tx-date').value = new Date().toISOString().split('T')[0];
   
   if (editId) {
-    const tx = state.transactions.find(t => t.id === editId);
+    const tx = state.transactions.find(t => String(t.id) === String(editId));
     if (!tx) return;
     
     title.textContent = 'Modify Transaction';
@@ -1043,7 +1045,7 @@ function renderBudgetsList() {
   budgets.forEach(b => {
     const percentage = b.limit_amount > 0 ? (b.spent / b.limit_amount) * 100 : 0;
     const formattedPercent = percentage.toFixed(0);
-    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
     
     let fillClass = '';
     let cardBorder = '';
@@ -1059,7 +1061,7 @@ function renderBudgetsList() {
       <div class="budget-status-card" ${cardBorder}>
         <div class="budget-card-header">
           <span class="budget-card-title">${b.category}</span>
-          <button class="btn-icon delete-btn" onclick="deleteBudget(${b.id})" title="Delete budget rule">
+          <button class="btn-icon delete-btn" onclick="deleteBudget('${b.id}')" title="Delete budget rule">
             <i data-lucide="minus-circle"></i>
           </button>
         </div>
@@ -1213,7 +1215,7 @@ function handleGenerateReport() {
   document.getElementById('report-preview-content').classList.remove('hidden');
   document.getElementById('report-export-actions').classList.remove('hidden');
   
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
   document.getElementById('report-preview-range').textContent = `Compilation Range: ${startStr} to ${endStr}`;
   document.getElementById('report-metric-income').textContent = formatter.format(income);
   document.getElementById('report-metric-expense').textContent = formatter.format(expense);
@@ -1270,13 +1272,13 @@ function exportReport(format) {
   if (!state.report.compiled) return;
   
   const reportData = state.report.data;
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
   const dateRangeStr = `${state.report.startDate} to ${state.report.endDate}`;
   const filename = `Aura_Finance_Report_${state.report.startDate}_to_${state.report.endDate}`;
 
   if (format === 'csv') {
     // Generate CSV
-    let csv = 'Type,Category,Description,Date,Amount ($)\n';
+    let csv = 'Type,Category,Description,Date,Amount (INR)\n';
     reportData.transactions.forEach(t => {
       const amount = t.amount.toFixed(2);
       const desc = (t.description || '').replace(/"/g, '""');
@@ -1304,13 +1306,13 @@ function exportReport(format) {
       ['Generated On', new Date().toLocaleDateString()],
       ['Account Holder', state.user.username],
       [],
-      ['Key Performance Indicators', 'Value ($)'],
+      ['Key Performance Indicators', 'Value (INR)'],
       ['Total Income', reportData.totalIncome],
       ['Total Expenses', reportData.totalExpense],
       ['Net Savings', reportData.totalSavings],
       ['Highest Category Outflow', reportData.highestCategory],
       [],
-      ['Category Expenses Summary', 'Spent ($)']
+      ['Category Expenses Summary', 'Spent (INR)']
     ];
     
     Object.keys(reportData.categorySummary).forEach(cat => {
@@ -1321,7 +1323,7 @@ function exportReport(format) {
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Report Summary');
     
     // Sheet 2: Transactions Detail
-    const txRows = [['Type', 'Category', 'Description', 'Date', 'Amount ($)']];
+    const txRows = [['Type', 'Category', 'Description', 'Date', 'Amount (INR)']];
     reportData.transactions.forEach(t => {
       txRows.push([
         t.type.toUpperCase(),
@@ -1343,6 +1345,7 @@ function exportReport(format) {
     // Generate Premium PDF Report via jsPDF & AutoTable
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const pdfFormat = (val) => formatter.format(val).replace(/₹/g, 'INR ');
     
     // Document Colors Matching Active Theme
     const isDark = state.theme === 'dark';
@@ -1389,7 +1392,7 @@ function exportReport(format) {
     doc.setTextColor(34, 197, 94); // success green
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(formatter.format(reportData.totalIncome), 18, 81);
+    doc.text(pdfFormat(reportData.totalIncome), 18, 81);
     
     // Card 2
     doc.setFillColor(248, 250, 252);
@@ -1401,7 +1404,7 @@ function exportReport(format) {
     doc.setTextColor(239, 68, 68); // danger red
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(formatter.format(reportData.totalExpense), 64, 81);
+    doc.text(pdfFormat(reportData.totalExpense), 64, 81);
     
     // Card 3
     doc.setFillColor(248, 250, 252);
@@ -1413,7 +1416,7 @@ function exportReport(format) {
     doc.setTextColor(reportData.totalSavings < 0 ? 239 : 37, reportData.totalSavings < 0 ? 68 : 99, reportData.totalSavings < 0 ? 68 : 235);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text(formatter.format(reportData.totalSavings), 110, 81);
+    doc.text(pdfFormat(reportData.totalSavings), 110, 81);
     
     // Card 4
     doc.setFillColor(248, 250, 252);
@@ -1437,7 +1440,7 @@ function exportReport(format) {
     Object.keys(reportData.categorySummary).forEach(cat => {
       const spent = reportData.categorySummary[cat];
       const pct = reportData.totalExpense > 0 ? ((spent / reportData.totalExpense) * 100).toFixed(1) + '%' : '0%';
-      catRows.push([cat, formatter.format(spent), pct]);
+      catRows.push([cat, pdfFormat(spent), pct]);
     });
     
     if (catRows.length === 0) {
@@ -1466,7 +1469,7 @@ function exportReport(format) {
         t.category,
         t.description || '',
         t.date,
-        (t.type === 'expense' ? '-' : '+') + formatter.format(t.amount)
+        (t.type === 'expense' ? '-' : '+') + pdfFormat(t.amount)
       ]);
     });
     
@@ -1521,7 +1524,7 @@ function renderInsights() {
     return;
   }
 
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
   const insights = [];
 
   // Insight 1: Compare selected month spending against previous month
@@ -1693,11 +1696,11 @@ async function renderCharts() {
 function calculateAnalyticsAverages() {
   const expenses = state.transactions.filter(t => t.type === 'expense');
   const incomes = state.transactions.filter(t => t.type === 'income');
-  const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  const formatter = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' });
   
   if (expenses.length === 0) {
-    document.getElementById('analytics-daily-avg').textContent = '$0.00';
-    document.getElementById('analytics-weekly-avg').textContent = '$0.00';
+    document.getElementById('analytics-daily-avg').textContent = '?0.00';
+    document.getElementById('analytics-weekly-avg').textContent = '?0.00';
     document.getElementById('analytics-savings-rate').textContent = '0%';
     return;
   }
@@ -1806,7 +1809,7 @@ function renderTrendsChart(data) {
           grid: { color: colors.gridColor },
           ticks: {
             color: colors.tickColor,
-            callback: value => '$' + value
+            callback: value => '?' + value
           }
         }
       }
@@ -1935,7 +1938,7 @@ function renderBudgetUtilizationChart() {
           grid: { color: colors.gridColor },
           ticks: {
             color: colors.tickColor,
-            callback: value => '$' + value
+            callback: value => '?' + value
           }
         }
       }
@@ -1966,4 +1969,159 @@ function formatMonthYear(monthStr) {
     month: 'long',
     year: 'numeric'
   });
+}
+
+// ==========================================
+// Authentication Handlers
+// ==========================================
+function switchAuthTab(tab) {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const loginTab = document.getElementById('tab-login');
+  const registerTab = document.getElementById('tab-register');
+
+  if (tab === 'login') {
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+    loginTab.classList.add('active');
+    registerTab.classList.remove('active');
+  } else {
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+    loginTab.classList.remove('active');
+    registerTab.classList.add('active');
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const credential = document.getElementById('login-credential').value;
+  const password = document.getElementById('login-password').value;
+
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential, password })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      getToast().fire({ icon: 'success', title: data.message });
+      handleLoginSuccess(data.user);
+    } else {
+      const sw = getSwalTheme();
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: data.error || 'Invalid credentials.',
+        background: sw.background,
+        color: sw.color,
+        confirmButtonColor: sw.confirmButtonColor
+      });
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const username = document.getElementById('register-username').value;
+  const email = document.getElementById('register-email').value;
+  const password = document.getElementById('register-password').value;
+
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, email, password })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      getToast().fire({ icon: 'success', title: data.message });
+      handleLoginSuccess(data.user);
+    } else {
+      const sw = getSwalTheme();
+      Swal.fire({
+        icon: 'error',
+        title: 'Registration Failed',
+        text: data.error || 'Could not register user.',
+        background: sw.background,
+        color: sw.color,
+        confirmButtonColor: sw.confirmButtonColor
+      });
+    }
+  } catch (err) {
+    console.error('Registration error:', err);
+  }
+}
+
+async function handleLogout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    if (response.ok) {
+      showAuthScreen();
+      getToast().fire({ icon: 'info', title: 'Logged out successfully' });
+    }
+  } catch (err) {
+    console.error('Logout error:', err);
+  }
+}
+
+// ==========================================
+// Profile Handlers
+// ==========================================
+function populateProfileForm() {
+  if (state.currentUser) {
+    document.getElementById('profile-username').value = state.currentUser.username || '';
+    document.getElementById('profile-email').value = state.currentUser.email || '';
+    document.getElementById('profile-password').value = '';
+  }
+}
+
+async function handleUpdateProfile(e) {
+  e.preventDefault();
+  const username = document.getElementById('profile-username').value;
+  const email = document.getElementById('profile-email').value;
+  const password = document.getElementById('profile-password').value;
+
+  try {
+    const payload = { username, email };
+    if (password) {
+      payload.password = password;
+    }
+
+    const response = await fetch('/api/auth/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      state.currentUser = data.user;
+      document.getElementById('username-display').textContent = data.user.username;
+      document.getElementById('user-initials').textContent = data.user.username.charAt(0).toUpperCase();
+      
+      getToast().fire({ icon: 'success', title: data.message });
+      document.getElementById('profile-password').value = '';
+    } else {
+      const sw = getSwalTheme();
+      Swal.fire({
+        icon: 'error',
+        title: 'Update Failed',
+        text: data.error || 'Could not update profile.',
+        background: sw.background,
+        color: sw.color,
+        confirmButtonColor: sw.confirmButtonColor
+      });
+    }
+  } catch (err) {
+    console.error('Profile update error:', err);
+  }
 }
