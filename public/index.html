@@ -195,6 +195,12 @@
               <span>Analytics</span>
             </a>
           </li>
+          <li>
+            <a href="#" id="nav-profile" class="nav-item" onclick="switchView('profile')">
+              <i data-lucide="user"></i>
+              <span>Profile Settings</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -276,7 +282,7 @@
                 <i data-lucide="coins"></i>
               </div>
             </div>
-            <h2 id="metric-balance" class="amount">$0.00</h2>
+            <h2 id="metric-balance" class="amount">?0.00</h2>
             <p class="metric-desc">Available net savings pool</p>
           </div>
 
@@ -287,7 +293,7 @@
                 <i data-lucide="trending-up"></i>
               </div>
             </div>
-            <h2 id="metric-income" class="amount text-success">$0.00</h2>
+            <h2 id="metric-income" class="amount text-success">?0.00</h2>
             <p class="metric-desc">Earnings in selected month</p>
           </div>
 
@@ -298,7 +304,7 @@
                 <i data-lucide="trending-down"></i>
               </div>
             </div>
-            <h2 id="metric-expense" class="amount text-danger">$0.00</h2>
+            <h2 id="metric-expense" class="amount text-danger">?0.00</h2>
             <p class="metric-desc">Outflows in selected month</p>
           </div>
 
@@ -309,7 +315,7 @@
                 <i data-lucide="piggy-bank"></i>
               </div>
             </div>
-            <h2 id="metric-savings" class="amount text-primary">$0.00</h2>
+            <h2 id="metric-savings" class="amount text-primary">?0.00</h2>
             <p class="metric-desc">Savings rate: <strong id="metric-savings-rate" class="text-primary">0%</strong></p>
           </div>
         </div>
@@ -367,6 +373,16 @@
             <h3>Transaction Vault</h3>
             
             <div class="filter-controls">
+              <!-- Export Buttons -->
+              <div class="export-actions">
+                <button class="btn btn-secondary btn-sm" onclick="exportReport('csv')" style="padding: 7px 10px; height: 32px;">
+                  <i data-lucide="download"></i> CSV
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="exportReport('pdf')" style="padding: 7px 10px; height: 32px;">
+                  <i data-lucide="file-text"></i> PDF
+                </button>
+              </div>
+
               <!-- Text Search -->
               <div class="search-input">
                 <i data-lucide="search"></i>
@@ -398,9 +414,9 @@
               <!-- Amount Threshold Filter -->
               <select id="tx-amount-filter" onchange="applyFilters()">
                 <option value="all">All Amounts</option>
-                <option value="under100">Under $100</option>
-                <option value="100to500">$100 - $500</option>
-                <option value="over500">Over $500</option>
+                <option value="under100">Under ?100</option>
+                <option value="100to500">?100 - ?500</option>
+                <option value="over500">Over ?500</option>
               </select>
             </div>
           </div>
@@ -468,9 +484,9 @@
               </div>
 
               <div class="input-group">
-                <label for="budget-limit">Monthly Limit Amount ($)</label>
+                <label for="budget-limit">Monthly Limit Amount (?)</label>
                 <div class="input-wrapper">
-                  <span class="currency-prefix">$</span>
+                  <span class="currency-prefix">?</span>
                   <input type="number" id="budget-limit" placeholder="e.g. 500" min="1" step="any" required>
                 </div>
               </div>
@@ -567,15 +583,15 @@
               <div class="report-metrics-grid">
                 <div class="report-metric">
                   <span class="report-metric-lbl">Total Income</span>
-                  <span id="report-metric-income" class="report-metric-val text-success">$0.00</span>
+                  <span id="report-metric-income" class="report-metric-val text-success">?0.00</span>
                 </div>
                 <div class="report-metric">
                   <span class="report-metric-lbl">Total Expenses</span>
-                  <span id="report-metric-expense" class="report-metric-val text-danger">$0.00</span>
+                  <span id="report-metric-expense" class="report-metric-val text-danger">?0.00</span>
                 </div>
                 <div class="report-metric">
                   <span class="report-metric-lbl">Net Savings</span>
-                  <span id="report-metric-savings" class="report-metric-val">$0.00</span>
+                  <span id="report-metric-savings" class="report-metric-val">?0.00</span>
                 </div>
                 <div class="report-metric">
                   <span class="report-metric-lbl">Highest Category</span>
@@ -615,12 +631,12 @@
         <div class="analytics-metrics-grid">
           <div class="metric-card">
             <span class="analytics-metric-label">Daily Avg Spending</span>
-            <h3 id="analytics-daily-avg" class="amount">$0.00</h3>
+            <h3 id="analytics-daily-avg" class="amount">?0.00</h3>
             <p class="metric-desc">Average outflow logged per day</p>
           </div>
           <div class="metric-card">
             <span class="analytics-metric-label">Weekly Avg Spending</span>
-            <h3 id="analytics-weekly-avg" class="amount">$0.00</h3>
+            <h3 id="analytics-weekly-avg" class="amount">?0.00</h3>
             <p class="metric-desc">Aggregated average spending rate</p>
           </div>
           <div class="metric-card">
@@ -679,6 +695,42 @@
           </div>
         </div>
       </section>
+
+      <!-- VIEW 6: PROFILE -->
+      <section id="view-profile" class="content-view hidden">
+        <div class="content-card" style="max-width: 600px; margin: 0 auto;">
+          <div class="card-header">
+            <h3>Profile Settings</h3>
+            <p class="subtitle">Update your account credentials</p>
+          </div>
+          <form id="profile-form" onsubmit="handleUpdateProfile(event)" style="display:flex; flex-direction:column; gap:16px;">
+            <div class="input-group">
+              <label for="profile-username">Username</label>
+              <div class="input-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <input type="text" id="profile-username" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="profile-email">Email Address</label>
+              <div class="input-wrapper">
+                <i data-lucide="mail" class="input-icon"></i>
+                <input type="email" id="profile-email" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="profile-password">New Password (leave blank to keep current)</label>
+              <div class="input-wrapper">
+                <i data-lucide="lock" class="input-icon"></i>
+                <input type="password" id="profile-password" minlength="6">
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top: 10px;">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -712,9 +764,9 @@
 
         <div class="modal-form-row">
           <div class="input-group">
-            <label for="modal-tx-amount">Amount ($)</label>
+            <label for="modal-tx-amount">Amount (?)</label>
             <div class="input-wrapper">
-              <span class="currency-prefix">$</span>
+              <span class="currency-prefix">?</span>
               <input type="number" id="modal-tx-amount" placeholder="0.00" min="0.01" step="any" required>
             </div>
           </div>
@@ -774,6 +826,10 @@
     <a href="#" id="mobile-nav-analytics" class="mobile-nav-item" onclick="switchView('analytics')">
       <i data-lucide="trending-up"></i>
       <span>Trends</span>
+    </a>
+    <a href="#" id="mobile-nav-profile" class="mobile-nav-item" onclick="switchView('profile')">
+      <i data-lucide="user"></i>
+      <span>Profile</span>
     </a>
   </nav>
 
