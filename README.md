@@ -907,7 +907,8 @@ B.Tech Student | Full-Stack & Software Development Enthusiast
 If you have suggestions, feedback, or questions regarding Aura Finance, feel free to contact me:
 
 **Email:** [jayrohit0310@gmail.com](mailto:jayrohit0310@gmail.com)
-**Email:** [Jayrohit0310](mailto:https://www.linkedin.com/in/jay-rohit-8204ab320?utm_source=share_via&utm_content=profile&utm_medium=member_android)
+
+**Linkdin:** [Jayrohit0310](mailto:https://www.linkedin.com/in/jay-rohit-8204ab320?utm_source=share_via&utm_content=profile&utm_medium=member_android)
 
 You can also open an issue in this repository for bugs, feature requests, or improvements.
 
